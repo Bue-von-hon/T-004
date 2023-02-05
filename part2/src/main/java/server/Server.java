@@ -24,6 +24,6 @@ public final class Server {
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
-
+        executor.shutdown();
     }
 }
