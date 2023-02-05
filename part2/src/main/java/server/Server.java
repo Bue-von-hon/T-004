@@ -1,12 +1,8 @@
 package server;
 
-import java.io.BufferedReader;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -18,24 +14,10 @@ public final class Server {
             serverSocket.bind(new InetSocketAddress("localhost", 1234));
             while (true) {
                 final Socket socket = serverSocket.accept();
-                final Callable callable = () -> {
-                    if (!socket.isConnected()) {
-                        return Boolean.TRUE;
-                    }
-                    final InputStream inputStream = socket.getInputStream();
-                    final InputStreamReader reader = new InputStreamReader(inputStream);
-                    final BufferedReader in = new BufferedReader(reader);
-                    final String data = in.readLine();
-                    System.out.println(data);
-                    if ("exit".equals(data)) {
-                        return Boolean.TRUE;
-                    }
-                    return Boolean.FALSE;
-                };
-                final Future future = executor.submit(callable);
-                final Object o = future.get();
-                final Boolean b = (Boolean) o;
-                if (Boolean.FALSE == b) {
+                final MessageHandler handler = new MessageHandler(socket);
+                final Future<Boolean> future = executor.submit(handler);
+                final Boolean isEnd = future.get();
+                if (Boolean.TRUE == isEnd) {
                     break;
                 }
             }
